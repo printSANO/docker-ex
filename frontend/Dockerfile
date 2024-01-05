@@ -1,11 +1,11 @@
 # node.js 16버전을 사용하겠다는 의미
-FROM node:16-alpine 
+FROM node:20-alpine 
 
 # 컨테이터 내부 현 디렉토리를 frontend로 설정
 WORKDIR /frontend
 
 # package.json을 복사 (dependencies를 설치하기 위함)
-COPY package.json ./
+COPY package.json .
 
 # package.json에 있는 dependencies를 설치
 RUN npm install
@@ -14,7 +14,7 @@ RUN npm install
 COPY . ./
 
 # 디버그 개발용 실행
-RUN npm run dev
+# RUN npm run dev
 
 # 아래는 배포용
 # RUN npm run build
