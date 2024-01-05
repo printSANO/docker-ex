@@ -1,2 +1,76 @@
-version: '3'
+version: '3.3'
+
 services:
+  # nginx:
+  #   image: nginx:latest
+  #   container_name: nginx
+  #   ports:
+  #     - 80:80
+  #   volumes:
+  #     - ./nginx:/etc/nginx/conf.d
+  #   depends_on:
+  #     - react
+    
+  # react:
+  #   build:
+  #     context: ./frontend
+  #   container_name: react
+  #   stdin_open: true
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - ./frontend:/app/frontend
+
+  mysqldb:
+    image: mysql:latest
+    container_name: mysqldb
+    restart: always
+    environment:
+      MYSQL_DATABASE: "testdb"
+      MYSQL_USER: "admin"
+      MYSQL_PASSWORD: "root"
+      MYSQL_ROOT_PASSWORD: "root"
+    ports:
+      - '3306:3306'
+    expose:
+      - 3306
+    volumes:
+      - sql-db:/var/lib/mysql
+    networks:
+      - app-tier
+  
+  mongoose:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - 27017:27017
+    volumes:
+      - mongobo-db:/data/db
+  
+  django:
+    build:
+      context: ./backend
+    container_name: django
+    command: sh -c "python3 manage.py migrate --noinput && python manage.py runserver"
+    stdin_open: true
+    ports:
+      - 8000:8000
+    volumes:
+      - ./backend/:/backend/
+      - sql-db:/var/lib/mysql
+    depends_on:
+      - mysqldb
+      # - mongoose
+    networks:
+      - app-tier
+  
+
+volumes:
+  sql-db:
+  mongobo-db:
+
+networks:
+  app-tier:
+    driver: bridge
