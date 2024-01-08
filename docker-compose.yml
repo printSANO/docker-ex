@@ -37,6 +37,11 @@ services:
       - 3306
     volumes:
       - sql-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uadmin", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - app-tier
   
@@ -66,6 +71,7 @@ services:
       # - mongoose
     networks:
       - app-tier
+    restart: always
   
 
 volumes:
