@@ -1,27 +1,6 @@
 version: '3.3'
 
 services:
-  # nginx:
-  #   image: nginx:latest
-  #   container_name: nginx
-  #   ports:
-  #     - 8080:80
-  #   volumes:
-  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf
-  #   depends_on:
-  #     - react
-    
-  react:
-    build:
-      context: ./frontend
-    container_name: react
-    stdin_open: true
-    command: sh -c "npm run dev"
-    ports:
-      - 5173:5173
-    volumes:
-      - ./frontend:/app/frontend
-
   mysqldb:
     image: mysql:latest
     container_name: mysqldb
@@ -45,16 +24,6 @@ services:
     networks:
       - app-tier
   
-  # mongoose:
-  #   image: mongo:latest
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: root
-  #     MONGO_INITDB_ROOT_PASSWORD: password
-  #   ports:
-  #     - 27017:27017
-  #   volumes:
-  #     - mongobo-db:/data/db
-  
   django:
     build:
       context: ./backend
@@ -68,15 +37,12 @@ services:
       - sql-db:/var/lib/mysql
     depends_on:
       - mysqldb
-      # - mongoose
     networks:
       - app-tier
     restart: always
   
-
 volumes:
   sql-db:
-  mongobo-db:
 
 networks:
   app-tier:
