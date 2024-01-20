@@ -21,29 +21,79 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    networks:
-      - app-tier
+    # networks:
+    #   - app-tier
   
   django:
     build:
       context: ./backend
     container_name: django
-    command: sh -c "python3 manage.py migrate --noinput && python manage.py runserver"
+    command: sh -c "python3 manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
     stdin_open: true
     ports:
       - 8000:8000
+    expose:
+      - 8000
     volumes:
       - ./backend/:/backend/
       - sql-db:/var/lib/mysql
     depends_on:
       - mysqldb
-    networks:
-      - app-tier
+    # networks:
+    #   - app-tier
     restart: always
   
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.46.0
+    container_name: cadvisor
+    ports:
+      - 8080:8080
+    volumes: 
+      - "/:/rootfs"
+      - "/var/run:/var/run"
+      - "/sys:/sys"
+      - "/var/lib/docker/:/var/lib/docker"
+      - "/dev/disk/:/dev/disk"
+    privileged: true
+    # networks:
+    #   - app-tier
+    restart: always
+  
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    # networks:
+    #   - app-tier
+    restart: always
+    depends_on:
+      - cadvisor
+      - django
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-data:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=root
+    # networks:
+    #   - app-tier
+    restart: always
+    depends_on:
+      - prometheus
+
 volumes:
   sql-db:
+  grafana-data:
 
-networks:
-  app-tier:
-    driver: bridge
+# networks:
+#   app-tier:
+#     driver: bridge
